@@ -25,11 +25,11 @@ ax.set_ylabel('Exam 2 Score')
 #plt.show()
 
 
-#sigmoid function
+# sigmoid function
 def sigmoid (z):
     return 1 / (1 + np.exp(-z))
 
-#cost function
+# cost function to evaulate the solution
 def cost_function(theta, X, y):
     theta = np.matrix(theta)
     X = np.matrix(X)
@@ -41,25 +41,7 @@ def cost_function(theta, X, y):
     return np.sum(first - second) / (len(X))
 
 
-#to make matrix multiplication easier
-data.insert(0, 'Ones', 1)
-
-#print (data)
-
-# set X (training data) and y (target variable)
-cols = data.shape[1]
-X = data.iloc[:,0:cols-1]
-y = data.iloc[:,cols-1:cols]
-
-# convert to numpy arrays and initalize the parameter array theta
-X = np.array(X.values)
-y = np.array(y.values)
-theta = np.zeros(3)
-
-
-#checking the dimension of the matrices
-#print (X.shape, theta.shape, y.shape)
-
+# finding the gradient of a single data point
 def gradient (theta, X, y):
     theta = np.matrix(theta)
     X = np.matrix(X)
@@ -73,24 +55,53 @@ def gradient (theta, X, y):
     for i in range(parameters):
         term = np.multiply(error, X[:,i])
         grad[i] = np.sum(term) / len(X)
-    
+
     return grad
- 
-# finding the gradient decent
-result = opt.fmin_tnc(func=cost_function, x0=theta, fprime=gradient, args=(X, y))
 
-
+# implements the classifier 
 def predict (theta, X):
     probability = sigmoid (X * theta.T)
     return [1 if x >= 0.5 else 0 for x in probability]
 
-theta_min = np.matrix(result[0])
+
+## perfom calculations and find the gradient descent
+
+# to make matrix multiplication easier
+data.insert(0, 'Ones', 1)
+
+# set X (training data) and y (target variable)
+cols = data.shape[1]
+X = data.iloc[:,0:cols-1]
+y = data.iloc[:,cols-1:cols]
+
+# convert to numpy arrays and initalize the parameter array theta
+X = np.array(X.values)
+y = np.array(y.values)
+theta = np.zeros(3)
+
+#checking the dimension of the matrices
+#print (X.shape, theta.shape, y.shape)
+
+# calculate the gradient descent
+result = opt.fmin_tnc(func=cost_function, x0=theta, fprime=gradient, args=(X, y))
+optimal_value = result[0]
+
+# testing 
+theta_min = np.matrix(optimal_value)
 predictions = predict(theta_min, X)
 correct = [1 if ((a == 1 and b == 1) or (a == 0 and b == 0)) else 0 for (a, b) in zip(predictions, y)]
 accuracy = (sum(map(int, correct)) / len (correct)) * 100
 print ('accuracy = {0}%'.format(accuracy))
 
 
+
+#Plotting the decision boundary
+theta_arr = np.squeeze(np.asarray(theta_min))
+plot_x = np.array([min(data.iloc[:, 1]) - 2, max(data.iloc[:, 2]) + 2])
+plot_y = (- 1.0 / theta_arr[2]) * (theta_arr[1] * plot_x + theta_arr[0])
+ax.plot(plot_x, plot_y)
+ax.legend(['Decision Boundary', 'Not admitted', 'Admitted'])
+plt.show()
 
 
 
